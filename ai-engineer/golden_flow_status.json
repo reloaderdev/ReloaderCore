@@ -1,0 +1,22 @@
+{
+  "mission": "Agregar columna 'socios' al ecosistema",
+  "dba": {
+    "status": "pending",
+    "details": "Esperando scripts SQL y Stored Procedures",
+    "tasks": ["Crear columna socios", "Actualizar SP_GetPartners"]
+  },
+  "decision_hub": {
+    "choice": null,
+    "options": ["Ktor (Microservicios)", "Java (Payara)"]
+  },
+  "backend": {
+    "status": "idle",
+    "details": "Esperando decisión de arquitectura",
+    "type": null
+  },
+  "mobile": {
+    "status": "idle",
+    "details": "Esperando endpoints del backend"
+  },
+  "overall_progress": 0
+}

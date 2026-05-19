@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>n8n Golden Flow Orchestrator - Reloader Project</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --n8n-bg: #1a1b1e;
+            --n8n-canvas: #121316;
+            --n8n-node-bg: #2c2d31;
+            --n8n-node-border: #3f4046;
+            --n8n-text: #e1e2e6;
+            --n8n-text-dim: #94959b;
+            --n8n-accent: #ff6d5a;
+            --n8n-success: #27ae60;
+            --n8n-info: #2d8cf0;
+            --n8n-warning: #f1c40f;
+            --n8n-purple: #8e44ad;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--n8n-bg);
+            color: var(--n8n-text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            height: 60px;
+            background-color: #121316;
+            border-bottom: 1px solid var(--n8n-node-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 100;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--n8n-accent);
+        }
+
+        .header-logo i {
+            font-size: 1.5rem;
+        }
+
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .btn-execute {
+            background-color: var(--n8n-success);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: filter 0.2s;
+        }
+
+        .btn-execute:hover {
+            filter: brightness(1.1);
+        }
+
+        /* Main Workspace */
+        .workspace {
+            flex: 1;
+            position: relative;
+            background-color: var(--n8n-canvas);
+            background-image: radial-gradient(var(--n8n-node-border) 1px, transparent 1px);
+            background-size: 30px 30px;
+            overflow: hidden;
+        }
+
+        /* Nodes */
+        .node {
+            position: absolute;
+            width: 220px;
+            background-color: var(--n8n-node-bg);
+            border: 2px solid var(--n8n-node-border);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            cursor: move;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .node:hover {
+            border-color: var(--n8n-accent);
+            box-shadow: 0 0 15px rgba(255, 109, 90, 0.2);
+        }
+
+        .node-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--n8n-node-border);
+        }
+
+        .node-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.1rem;
+        }
+
+        .node-title {
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .node-content {
+            font-size: 0.8rem;
+            color: var(--n8n-text-dim);
+            line-height: 1.4;
+        }
+
+        .node-port {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: var(--n8n-node-border);
+            border-radius: 50%;
+            border: 2px solid var(--n8n-canvas);
+        }
+
+        .port-input { left: -6px; top: 50%; transform: translateY(-50%); }
+        .port-output { right: -6px; top: 50%; transform: translateY(-50%); }
+
+        /* Specific Node Styles */
+        .node-dba .node-icon { color: #f1c40f; }
+        .node-logic .node-icon { color: #9b59b6; }
+        .node-ktor .node-icon { color: #00f2ff; }
+        .node-java .node-icon { color: #e67e22; }
+        .node-mobile .node-icon { color: #2ecc71; }
+
+        /* Connections */
+        .connections-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .connection-line {
+            fill: none;
+            stroke: var(--n8n-node-border);
+            stroke-width: 2;
+            stroke-dasharray: 5,5;
+            animation: flow 20s linear infinite;
+        }
+
+        @keyframes flow {
+            from { stroke-dashoffset: 200; }
+            to { stroke-dashoffset: 0; }
+        }
+
+        .connection-line.active {
+            stroke: var(--n8n-accent);
+            stroke-width: 3;
+            filter: drop-shadow(0 0 5px var(--n8n-accent));
+        }
+
+        /* Sidebar info */
+        .sidebar-right {
+            width: 300px;
+            background-color: #121316;
+            border-left: 1px solid var(--n8n-node-border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            background-color: var(--n8n-node-bg);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid var(--n8n-node-border);
+        }
+
+        .info-title {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--n8n-accent);
+        }
+
+        .info-text {
+            font-size: 0.8rem;
+            color: var(--n8n-text-dim);
+            line-height: 1.5;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .dot-green { background-color: var(--n8n-success); box-shadow: 0 0 8px var(--n8n-success); }
+
+        /* Animation for current node */
+        .node.active {
+            border-color: var(--n8n-accent);
+            box-shadow: 0 0 20px rgba(255, 109, 90, 0.4);
+            animation: pulse-node 2s infinite;
+        }
+
+        @keyframes pulse-node {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-logo">
+            <i class="fas fa-project-diagram"></i>
+            <span>RELOADER WORKFLOW ENGINE</span>
+        </div>
+        <div class="header-status">
+            <div style="font-size: 0.8rem; font-weight: 600; color: var(--n8n-text-dim);">
+                <span class="status-dot dot-green"></span> SISTEMA LISTO
+            </div>
+            <button class="btn-execute" onclick="startWorkflow()">
+                <i class="fas fa-play"></i> EJECUTAR FLUJO
+            </button>
+        </div>
+    </header>
+
+    <div style="display: flex; flex: 1;">
+        <div class="workspace" id="canvas">
+            <svg class="connections-svg" id="svg-lines">
+                <!-- Lines will be drawn here -->
+            </svg>
+
+            <!-- Start Node -->
+            <div class="node" style="left: 50px; top: 150px;" id="node-start">
+                <div class="node-header">
+                    <div class="node-icon"><i class="fas fa-terminal"></i></div>
+                    <div class="node-title">Usuario: Trigger</div>
+                </div>
+                <div class="node-content">
+                    "Agrega columna socios"
+                </div>
+                <div class="node-port port-output"></div>
+            </div>
+
+            <!-- DBA Node -->
+            <div class="node node-dba" style="left: 320px; top: 150px;" id="node-dba">
+                <div class="node-header">
+                    <div class="node-icon"><i class="fas fa-database"></i></div>
+                    <div class="node-title">Agente DBA</div>
+                </div>
+                <div class="node-content">
+                    • Genera Scripts SQL<br>
+                    • Crea Stored Procedures<br>
+                    • Valida Esquema
+                </div>
+                <div class="node-port port-input"></div>
+                <div class="node-port port-output"></div>
+            </div>
+
+            <!-- Decision Node -->
+            <div class="node node-logic" style="left: 600px; top: 150px;" id="node-logic">
+                <div class="node-header">
+                    <div class="node-icon"><i class="fas fa-brain"></i></div>
+                    <div class="node-title">Decision Hub</div>
+                </div>
+                <div class="node-content">
+                    ¿Ktor o Java Payara?<br>
+                    <span style="font-style: italic; font-size: 0.7rem;">(Basado en complejidad)</span>
+                </div>
+                <div class="node-port port-input"></div>
+                <div class="node-port port-output" style="top: 30%"></div>
+                <div class="node-port port-output" style="top: 70%"></div>
+            </div>
+
+            <!-- Ktor Node -->
+            <div class="node node-ktor" style="left: 880px; top: 50px;" id="node-ktor">
+                <div class="node-header">
+                    <div class="node-icon"><i class="fab fa-kotlin"></i></div>
+                    <div class="node-title">MS Ktor</div>
+                </div>
+                <div class="node-content">
+                    • Create Ktor Route<br>
+                    • Implement Service<br>
+                    • Docker Deploy
+                </div>
+                <div class="node-port port-input"></div>
+                <div class="node-port port-output"></div>
+            </div>
+
+            <!-- Java Node -->
+            <div class="node node-java" style="left: 880px; top: 250px;" id="node-java">
+                <div class="node-header">
+                    <div class="node-icon"><i class="fab fa-java"></i></div>
+                    <div class="node-title">WS Java</div>
+                </div>
+                <div class="node-content">
+                    • Create JAX-RS Endpt<br>
+                    • EJB Business Logic<br>
+                    • Payara Deploy
+                </div>
+                <div class="node-port port-input"></div>
+                <div class="node-port port-output"></div>
+            </div>
+
+            <!-- Mobile Node -->
+            <div class="node node-mobile" style="left: 1180px; top: 150px;" id="node-mobile">
+                <div class="node-header">
+                    <div class="node-icon"><i class="fas fa-mobile-alt"></i></div>
+                    <div class="node-title">Mobile KMP</div>
+                </div>
+                <div class="node-content">
+                    • Consume Endpoint<br>
+                    • Create UI Screen<br>
+                    • Registry Partners
+                </div>
+                <div class="node-port port-input"></div>
+            </div>
+        </div>
+
+        <aside class="sidebar-right">
+            <div class="info-card">
+                <div class="info-title"><i class="fas fa-info-circle"></i> GOLDEN FLOW</div>
+                <p class="info-text">
+                    Este es el flujo de automatización autónomo. Cuando envías una instrucción, los agentes se activan en cascada siguiendo estos nodos.
+                </p>
+            </div>
+
+            <div class="info-card">
+                <div class="info-title"><i class="fas fa-microchip"></i> LOGS DE AGENTES</div>
+                <div id="logs" style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: #8b949e; height: 300px; overflow-y: auto;">
+                    > Esperando comando...
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        function drawLines() {
+            const svg = document.getElementById('svg-lines');
+            svg.innerHTML = ''; // Clear lines
+
+            const connections = [
+                ['node-start', 'node-dba'],
+                ['node-dba', 'node-logic'],
+                ['node-logic', 'node-ktor'],
+                ['node-logic', 'node-java'],
+                ['node-ktor', 'node-mobile'],
+                ['node-java', 'node-mobile']
+            ];
+
+            connections.forEach(([fromId, toId]) => {
+                const fromEl = document.getElementById(fromId);
+                const toEl = document.getElementById(toId);
+
+                const fromRect = fromEl.getBoundingClientRect();
+                const toRect = toEl.getBoundingClientRect();
+                const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+
+                const x1 = fromRect.right - canvasRect.left;
+                const y1 = fromRect.top + fromRect.height / 2 - canvasRect.top;
+                const x2 = toRect.left - canvasRect.left;
+                const y2 = toRect.top + toRect.height / 2 - canvasRect.top;
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                const midX = x1 + (x2 - x1) / 2;
+                const d = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
+                
+                path.setAttribute('d', d);
+                path.setAttribute('class', 'connection-line');
+                path.setAttribute('id', `line-${fromId}-${toId}`);
+                svg.appendChild(path);
+            });
+        }
+
+        async function startWorkflow() {
+            const sequence = [
+                { node: 'node-start', line: null, msg: 'Iniciando Trigger: "Agrega columna socios"' },
+                { node: 'node-dba', line: 'line-node-start-node-dba', msg: 'Activando DBA: Generando scripts SQL...' },
+                { node: 'node-logic', line: 'line-node-dba-node-logic', msg: 'Decision Hub: Evaluando arquitectura...' },
+                { node: 'node-ktor', line: 'line-node-logic-node-ktor', msg: 'Decision tomada: Microservicio Ktor.' },
+                { node: 'node-mobile', line: 'line-node-ktor-node-mobile', msg: 'Mobile KMP: Integrando servicios y UI.' }
+            ];
+
+            // Reset
+            document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.connection-line').forEach(l => l.classList.remove('active'));
+            document.getElementById('logs').innerHTML = '';
+
+            for (const step of sequence) {
+                const nodeEl = document.getElementById(step.node);
+                nodeEl.classList.add('active');
+                if (step.line) {
+                    document.getElementById(step.line).classList.add('active');
+                }
+                
+                const log = document.createElement('div');
+                log.innerHTML = `> <span style="color:var(--n8n-accent)">[${new Date().toLocaleTimeString()}]</span> ${step.msg}`;
+                document.getElementById('logs').appendChild(log);
+                
+                await new Promise(r => setTimeout(r, 2000));
+            }
+            
+            const finalLog = document.createElement('div');
+            finalLog.innerHTML = `> <span style="color:var(--n8n-success)">[COMPLETADO]</span> El flujo ha terminado exitosamente.`;
+            document.getElementById('logs').appendChild(finalLog);
+        }
+
+        window.onload = drawLines;
+        window.onresize = drawLines;
+    </script>
+</body>
+</html>

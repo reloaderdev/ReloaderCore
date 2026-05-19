@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>n8n Turbo Dashboard V3 - AI Engineer</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --n8n-bg: #1a1b1e;
+            --n8n-node-bg: #2c2d31;
+            --n8n-border: #3f4046;
+            --n8n-text: #e1e2e6;
+            --n8n-accent: #ff6d5a;
+            --n8n-success: #27ae60;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--n8n-bg); color: var(--n8n-text); margin: 0; display: flex; flex-direction: column; align-items: center; }
+        .nav { width: 100%; padding: 15px 40px; background-color: #121316; border-bottom: 1px solid var(--n8n-border); display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
+        .mission-panel { width: 90%; max-width: 1200px; margin-top: 20px; background: #1e1e22; border-left: 5px solid var(--n8n-accent); padding: 20px; border-radius: 8px; position: relative; min-height: 350px; }
+        .mermaid-wrapper { background-color: rgba(26, 27, 30, 0.8); border-radius: 8px; padding: 20px; min-height: 250px; }
+        #success-overlay { 
+            display: none; 
+            position: fixed; 
+            bottom: 10px; 
+            right: 10px; 
+            background: #27ae60; 
+            color: white; 
+            padding: 5px 15px; 
+            border-radius: 20px; 
+            font-size: 0.7rem;
+            font-weight: bold; 
+            z-index: 9999; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <h1><i class="fas fa-bolt"></i> RELOADER TURBO ENGINE V3</h1>
+        <div style="color: var(--n8n-success); font-weight: bold;">SISTEMA RESILIENTE ACTIVO</div>
+    </div>
+
+    <div class="mission-panel">
+        <div id="success-overlay">
+            <i class="fas fa-check-circle"></i> MISSION SUCCESS!
+        </div>
+        <h2 id="mission-title">🚀 Misión: Cargando...</h2>
+        <div class="mermaid-wrapper" id="mermaid-container"></div>
+        <p id="status-text"><strong>Estado:</strong> Conectando...</p>
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'loose', flowchart: { htmlLabels: true, curve: 'basis' } });
+        let lastDataStr = "";
+
+        async function refreshUI() {
+            try {
+                if (typeof dashboardData === 'undefined') return;
+                const currentDataStr = JSON.stringify(dashboardData);
+                if (currentDataStr === lastDataStr) return;
+                lastDataStr = currentDataStr;
+
+                document.getElementById('mission-title').innerText = "🚀 Misión: " + dashboardData.mission;
+                document.getElementById('status-text').innerHTML = "<strong>Estado:</strong> " + dashboardData.statusText;
+                document.getElementById('success-overlay').style.display = dashboardData.success ? 'block' : 'none';
+
+                const definition = `
+                    graph LR
+                        A["<i class='fas fa-search'></i> 1. Buscar Código"]
+                        B["<i class='fas fa-eraser'></i> 2. Eliminar Bloque UI"]
+                        C["<i class='fas fa-broom'></i> 3. Limpiar Nav/Files"]
+                        D["<i class='fas fa-check-circle'></i> 4. Verificación"]
+                        A --- B --- C --- D
+                        classDef pending fill:#2c2d31,stroke:#3f4046,color:#e1e2e6;
+                        classDef active fill:#3e2723,stroke:#ff6d5a,color:#fff;
+                        classDef done fill:#1b5e20,stroke:#27ae60,color:#fff;
+                        class A ${dashboardData.nodes.A};
+                        class B ${dashboardData.nodes.B};
+                        class C ${dashboardData.nodes.C};
+                        class D ${dashboardData.nodes.D};
+                `;
+                const { render } = mermaid;
+                const { svg } = await render('mermaid-svg-' + Date.now(), definition);
+                document.getElementById('mermaid-container').innerHTML = svg;
+            } catch (e) { console.error("Error de renderizado, reintentando...", e); }
+        }
+
+        function loadData() {
+            const oldScript = document.getElementById('dynamic-data-script');
+            if (oldScript) oldScript.remove();
+            const s = document.createElement('script');
+            s.id = 'dynamic-data-script';
+            s.src = 'data.js?t=' + Date.now();
+            s.onload = refreshUI;
+            document.head.appendChild(s);
+        }
+
+        setInterval(loadData, 1000);
+        window.onload = loadData;
+    </script>
+</body>
+</html>
