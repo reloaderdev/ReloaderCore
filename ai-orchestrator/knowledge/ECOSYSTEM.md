@@ -19,6 +19,7 @@ Mapa de agentes del ecosistema. Fuente de verdad del Team Leader.
 - Seeds y datos maestros
 - Docker local SQL Server
 - **Regla de oro:** ningún cambio de código ocurre antes de que la DB esté lista
+- **Fuente de verdad única:** `ReloaderDB/migrations/` es el único lugar desde donde se migra. `reloaderproject-rest/db/migrations` existe solo como referencia histórica del estado anterior a que ReloaderDB existiera — no se usa para migrar.
 
 ### REST
 - Endpoints JAX-RS (Resource → Service → DAO)
@@ -46,7 +47,7 @@ ReloaderDB → REST / Microservicios → Mobile
 
 ## Estado de conectividad
 
-- [ ] ReloaderDB — pendiente de crear
+- [x] ReloaderDB — activo
 - [x] REST — activo
 - [x] Microservicios — activo
 - [x] Mobile — activo

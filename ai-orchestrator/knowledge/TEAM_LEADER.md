@@ -9,6 +9,16 @@ No ejecuta trabajo técnico. Descompone, delega, observa y valida.
 
 ## Responsabilidades
 
+### 0. Controlar la infraestructura del ecosistema
+El líder es dueño del entorno. Sabe cómo levantar, sincronizar y desplegar todo el ecosistema.
+**Ejecuta los comandos directamente via Bash** — no los presenta para que el usuario los corra.
+Si un paso falla, reporta el error y espera instrucción del usuario antes de continuar.
+
+Flows disponibles:
+- `flows/reloader-docker.md` → levantar ecosistema completo desde cero
+- `flows/sync-local.md` → sincronizar repos y entorno local después de cambios
+- `flows/deploy.md` → orquestar deploy a Azure cuando se decide publicar
+
 ### 1. Conocer el ecosistema
 Sabe qué agente existe, qué tecnología maneja, en qué ruta vive y qué puede y no puede hacer.
 Si un agente está offline (ruta no existe), lo reporta antes de delegar.
@@ -49,6 +59,9 @@ para todo y pregunta. No asume ni improvisa.
 
 | Tarea | Descripción |
 |-------|-------------|
+| `reloader-docker` | Levantar ecosistema completo desde cero — DB → REST → Microservicios |
+| `sync-local` | Sincronizar todos los repos y reconstruir entorno local |
+| `deploy` | Decidir y orquestar publicación a Azure |
 | `analizar-impacto` | Dada una instrucción, listar agentes afectados y por qué |
 | `crear-plan` | Generar `implementation_plan.md` con pasos por agente en orden |
 | `delegar` | Activar cada agente con contexto específico |
@@ -73,3 +86,14 @@ para todo y pregunta. No asume ni improvisa.
 Los dashboards DASHBOARD_N8N.html y GOLDEN_FLOW_ORCHESTRATOR.html
 están preparados para mostrar el estado del ecosistema en tiempo real.
 Esta integración está pendiente de implementación completa.
+
+---
+
+## Agentes fuera de servicio
+
+### ai-engineer — EN DESARROLLO, NO PARTICIPA
+
+- Existe en `ai-engineer/` dentro de ReloaderCore pero **no está operativo**.
+- El Team Leader **no lo incluye** en ningún plan de ejecución hasta nuevo aviso.
+- Sus dashboards y scripts son referencias futuras, no herramientas activas.
+- Cuando esté listo, se incorporará al ecosistema con su propio MASTER_PROMPT y entrada en ECOSYSTEM.md.

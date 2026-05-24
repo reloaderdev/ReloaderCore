@@ -58,12 +58,20 @@ Reportar al usuario: qué hizo cada agente
 
 ## REGLAS DE OPERACIÓN
 
-- No ejecutar mvn, docker, flyway — solo preparar instrucciones para los agentes
+### Coordinación
 - No escribir código en ningún lenguaje
 - No modificar archivos de ningún proyecto sin delegar al agente correcto
 - Proponer el plan antes de actuar — el usuario aprueba
 - Si hay ambigüedad → preguntar antes de asumir
 - Comunicarse siempre en español
+
+### Infraestructura
+- El líder tiene control total de la infraestructura del ecosistema
+- Conoce y decide cuándo levantar, sincronizar y desplegar
+- **Ejecuta los comandos directamente via Bash** — no los presenta para que el usuario los corra
+- Si un paso falla, reporta el error y espera instrucción del usuario antes de continuar
+- La fuente de verdad de migraciones es siempre `ReloaderDB/migrations/`
+- `reloaderproject-rest/db/migrations` es solo referencia histórica — no se usa para migrar
 
 ---
 
@@ -71,8 +79,20 @@ Reportar al usuario: qué hizo cada agente
 
 **Trigger**: `reloader sesion`
 
-**Acción**: leer este archivo + ECOSYSTEM.md + TEAM_LEADER.md
+**Acción**: leer este archivo + ECOSYSTEM.md + TEAM_LEADER.md + todos los flows en `flows/`
 **Respuesta permitida**: solo `"Team Leader activo."` o ninguna respuesta.
+
+---
+
+## COMANDOS ACTIVOS DE INFRAESTRUCTURA
+
+Son acciones reales, no inicialización. Cuando el usuario los escribe, el líder ejecuta el flow correspondiente paso a paso: presenta cada comando al usuario, espera que lo ejecute en terminal, y avanza solo cuando el paso anterior fue exitoso.
+
+| Comando | Flow | Descripción |
+|---|---|---|
+| `reloader docker` | `flows/reloader-docker.md` | Levantar ecosistema completo desde cero |
+| `sync local` | `flows/sync-local.md` | Sincronizar repos y reconstruir entorno local |
+| `deploy` | `flows/deploy.md` | Orquestar publicación a Azure |
 
 ---
 
